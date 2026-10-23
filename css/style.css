@@ -1,0 +1,32 @@
+/* Contrastes : bordure des champs et orange "attention" à au moins 3:1 (WCAG 1.4.11),
+   les valeurs de Pico étant trop pâles. Mêmes sélecteurs que Pico pour clair / sombre. */
+:root:not([data-theme=dark]), [data-theme=light] {
+  --pico-form-element-border-color: #7b8495;
+  --couleur-attention: #b86e00;
+}
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) { --pico-form-element-border-color: #6f7889; --couleur-attention: #e0a030; }
+}
+[data-theme=dark] { --pico-form-element-border-color: #6f7889; --couleur-attention: #e0a030; }
+
+/* Compléments à Pico : couleur des verdicts, avec les couleurs de Pico */
+#contenu-resultat section {
+  border-left: 0.3rem solid var(--pico-muted-border-color);
+  padding-left: 1rem;
+  margin-bottom: 2rem;
+}
+#contenu-resultat [data-verdict="ok"] { border-left-color: var(--pico-ins-color); }
+#contenu-resultat [data-verdict="attention"] { border-left-color: var(--couleur-attention); }
+#contenu-resultat [data-verdict="rejet"] { border-left-color: var(--pico-del-color); }
+
+dt, fieldset legend { font-weight: bold; }
+footer { font-size: 0.75rem; color: var(--pico-muted-color); }
+footer p { margin-bottom: 0.5rem; }
+
+/* <summary> présenté comme un lien, chevron collé au texte (et non tout à droite) */
+details > summary:not([role]),
+details[open] > summary:not([role]):not(:focus) {
+  color: var(--pico-primary);
+  text-decoration: underline;
+}
+details summary::after { float: none; display: inline-block; vertical-align: middle; }

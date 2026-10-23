@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assistance PMR en gare</title>
+<link rel="stylesheet" href="css/pico.min.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="container">
+  <h1>Assistance PMR en gare</h1>
+  <p>Vérifie si Assist'enGare est compatible avec les gares et horaires de votre trajet.</p>
+  <p>Cet outil compare seulement vos horaires avec les horaires du service d'assistance en gare. Il ne vérifie pas que le trajet spécifié existe réellement, et il ne fait aucune réservation.</p>
+</header>
+
+<main class="container">
+  <h2>Votre trajet</h2>
+  <form>
+    <p><label>Date du départ <input type="date" name="jour" required></label></p>
+
+    <fieldset>
+      <legend>Départ</legend>
+      <div class="grid">
+        <label>Gare <input type="text" name="gare_depart" list="gares" required></label>
+        <label>Horaire de départ <input type="time" name="horaire_depart" required></label>
+      </div>
+    </fieldset>
+
+    <fieldset id="arrivee">
+      <legend>Arrivée</legend>
+      <div class="grid">
+        <label>Gare <input type="text" name="gare_arrivee" list="gares" required></label>
+        <label>Horaire d'arrivée <input type="time" name="horaire_arrivee" required></label>
+      </div>
+    </fieldset>
+
+    <details>
+      <summary>Modifier les marges (30 min par défaut)</summary>
+      <div class="grid">
+        <label>Présentation avant le départ (minutes) <input type="number" name="marge" value="30" min="0"></label>
+        <label>Correspondance minimale souhaitée (minutes) <input type="number" name="corresp_mini" value="30" min="0"></label>
+      </div>
+    </details>
+
+    <datalist id="gares"></datalist>
+    <div class="grid">
+      <button type="button" id="ajouter-correspondance" class="secondary">Ajouter une correspondance</button>
+      <button type="submit">Vérifier</button>
+    </div>
+  </form>
+
+  <template id="correspondance">
+    <fieldset class="correspondance">
+      <legend>Correspondance</legend>
+      <div class="grid">
+        <label>Gare <input type="text" name="gare_corresp" list="gares" required></label>
+        <label>Horaire d'arrivée <input type="time" name="arrivee_corresp" required></label>
+        <label>Horaire de départ <input type="time" name="depart_corresp" required></label>
+      </div>
+      <p><button type="button" class="secondary outline">Supprimer la correspondance</button></p>
+    </fieldset>
+  </template>
+
+  <p id="statut" role="status"></p>
+
+  <section id="resultat" aria-labelledby="titre-resultat" hidden>
+    <h2 id="titre-resultat" tabindex="-1">Résultat</h2>
+    <div id="contenu-resultat"></div>
+  </section>
+</main>
+
+<footer class="container">
+  <p>Site sous licence <a href="http://www.wtfpl.net/">WTFPL</a>.</p>
+  <p>Source des données : « <a href="https://ressources.data.sncf.com/explore/dataset/assistance-psh-pmr/">Assistance PSH/PMR</a> », Gares &amp; Connexions (SNCF), sous licence <a href="https://opendatacommons.org/licenses/odbl/">ODbL</a>.</p>
+  <p id="date-donnees"></p>
+  <p>Les données sont chargées depuis data.sncf.com, une fois par jour au plus, et stockées dans votre navigateur. Les informations saisies dans le formulaire ne quittent pas votre navigateur. Aucune pub ni cookies ni pistage ici.</p>
+  <p>Aucune garantie : ces informations peuvent être inexactes ou périmées. Confirmez-les en appelant le <a href="tel:3212">32 12</a>.</p>
+  <p>Outil indépendant, non affilié à la SNCF ni à Gares & Connexions, il utilise simplement leurs données ouvertes.</p>
+</footer>
+</body>
+</html>
