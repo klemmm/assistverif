@@ -1,8 +1,11 @@
 const DATA_URL =
   "https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/assistance-psh-pmr/exports/json";
 const CACHE_NAME = "pmr-data-v1";
-const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 
+// Le serveur répond "Cache-Control: no-store", donc on gère le cache nous-mêmes
+// via l'API Cache (dispo en contexte sécurisé : https ou localhost).
+// Renvoie { data, fetchedAt } (fetchedAt : date du téléchargement, en ms).
 async function loadData() {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(DATA_URL);
@@ -28,6 +31,7 @@ async function loadData() {
     );
     return { data: JSON.parse(body), fetchedAt };
   } catch (err) {
+    // Réseau indisponible : on se rabat sur la version en cache, même périmée.
     if (cached) return { data: await cached.json(), fetchedAt: cachedAt };
     throw err;
   }
@@ -42,16 +46,19 @@ function jourSemaine(date) {
 
 const MIN_JOUR = 24 * 60;
 
+// ("2026-10-23", 1) -> "2026-10-24"
 function decalerJour(date, n) {
   const [a, m, j] = date.split("-").map(Number);
   return new Date(Date.UTC(a, m - 1, j + n)).toISOString().slice(0, 10);
 }
 
+// "08:45" -> 525
 function minutes(horaire) {
   const [hh, mm] = horaire.split(":").map(Number);
   return hh * 60 + mm;
 }
 
+// "2026-10-23" -> "vendredi 23 octobre 2026"
 function dateLisible(date) {
   const [a, m, j] = date.split("-").map(Number);
   return new Date(Date.UTC(a, m - 1, j)).toLocaleDateString("fr-FR", {
@@ -59,6 +66,7 @@ function dateLisible(date) {
   });
 }
 
+// Petit utilitaire pour créer un élément : el("p", { class: "x" }, "texte", autreElement)
 function el(tag, attributs = {}, ...enfants) {
   const e = document.createElement(tag);
   for (const [nom, valeur] of Object.entries(attributs)) e.setAttribute(nom, valeur);
@@ -66,6 +74,8 @@ function el(tag, attributs = {}, ...enfants) {
   return e;
 }
 
+// (jour, 1470) -> <time datetime="2026-10-24T00:30">samedi 24 octobre 2026 à 00:30</time>
+// (minutes comptées depuis le début de `jour`)
 function heure(jour, t) {
   const n = Math.floor(t / MIN_JOUR);
   const date = decalerJour(jour, n);
@@ -74,13 +84,16 @@ function heure(jour, t) {
   return el("time", { datetime: `${date}T${hhmm}` }, `${dateLisible(date)} à ${hhmm}`);
 }
 
+// "08:45 - 12:00 / 13:30 - 17:00" -> [[525, 720], [810, 1020]] (en minutes)
 function parsePlages(texte) {
   return texte.split(" / ").map((plage) => {
     const [debut, fin] = plage.split(" - ").map(minutes);
+    // "04:30 - 00:15" : la plage se termine après minuit
     return [debut, fin <= debut ? fin + MIN_JOUR : fin];
   });
 }
 
+// Plage horaire applicable à une gare pour une date donnée (null = pas d'assistance).
 function horairesDuJour(gare, date) {
   for (let i = 1; i <= 20; i++) {
     if (gare[`jour_ferie_${i}`] === date) return gare[`horaires_jour_ferie_${i}`];
@@ -88,10 +101,21 @@ function horairesDuJour(gare, date) {
   return gare[`horaires_jour_nominal_${JOURS[jourSemaine(date)]}`];
 }
 
+// Un jour est férié uniquement s'il figure dans les jours fériés de la gare.
 function estFerie(gare, date) {
   return Array.from({ length: 20 }, (_, i) => gare[`jour_ferie_${i + 1}`]).includes(date);
 }
 
+// Toutes les dates fériées citées par au moins une gare de la base. Sert à repérer
+// les jours fériés pour les gares qui ne renseignent pas les leurs.
+let FERIES_CONNUS = new Set();
+function joursFeriesConnus(data) {
+  return new Set(data.flatMap((g) => Array.from({ length: 20 }, (_, i) => g[`jour_ferie_${i + 1}`]).filter(Boolean)));
+}
+
+// Plages d'assistance de la veille, du jour et du lendemain, en minutes depuis le
+// début de `jour`. Les plages qui se touchent sont fusionnées
+// (ex. "... - 23:59" puis "00:00 - ..." le lendemain).
 function plagesAutourDe(gare, jour) {
   const plages = [];
   for (const n of [-1, 0, 1]) {
@@ -111,19 +135,27 @@ function plagesAutourDe(gare, jour) {
   return fusion;
 }
 
+// Vérifie que l'assistance couvre tout l'intervalle [debut, fin] sans interruption.
+// debut et fin sont en minutes depuis le début de `jour` (peuvent déborder sur les jours suivants).
+// Renvoie { ok, motif, gare, jour, debut, fin, jours, plage } (motif : raison du refus).
 function verifier(data, jour, nom, debut, fin) {
   const gare = data.find((g) => g.nom === nom);
   if (!gare) return { ok: false, motif: "gare inconnue", gare: null };
 
+  // On se ramène au jour où commence l'intervalle.
   const n = Math.floor(debut / MIN_JOUR);
   jour = decalerJour(jour, n);
   debut -= n * MIN_JOUR;
   fin -= n * MIN_JOUR;
 
+  // Horaires de chaque jour touché par l'intervalle
   const jours = [];
   for (let i = 0; i <= Math.floor(fin / MIN_JOUR); i++) {
     const date = decalerJour(jour, i);
-    jours.push({ date, horaires: horairesDuJour(gare, date), ferie: estFerie(gare, date) });
+    const ferie = estFerie(gare, date);
+    // Jour férié ailleurs dans la base, mais la gare n'indique rien pour ce jour-là
+    const ferieNonPrecise = !ferie && FERIES_CONNUS.has(date);
+    jours.push({ date, horaires: horairesDuJour(gare, date), ferie, ferieNonPrecise });
   }
 
   const plage = plagesAutourDe(gare, jour).find(([d, f]) => d <= debut && fin <= f);
@@ -136,6 +168,7 @@ const PRISES_EN_CHARGE = {
   "RESERVE ET SPONTANE": "avec ou sans réservation",
 };
 
+// Section du résultat pour une étape. `verdict` : "ok", "attention" ou "rejet".
 function sectionEtape(titre, v, alertes) {
   const verdict = !v.ok ? "rejet" : alertes.length ? "attention" : "ok";
   const section = el("section", { "data-verdict": verdict }, el("h3", {}, titre));
@@ -151,7 +184,8 @@ function sectionEtape(titre, v, alertes) {
   if (v.gare.lieurendezvousgare) ligne("Point de rendez-vous", v.gare.lieurendezvousgare);
   ligne("Prise en charge", PRISES_EN_CHARGE[v.gare.typepriseencharge] ?? v.gare.typepriseencharge);
   for (const j of v.jours) {
-    ligne(`Horaires d'assistance du ${dateLisible(j.date)}${j.ferie ? " (jour férié)" : ""}`, j.horaires ?? "aucune assistance");
+    const mention = j.ferie ? " (jour férié)" : j.ferieNonPrecise ? " (jour férié, horaires habituels)" : "";
+    ligne(`Horaires d'assistance du ${dateLisible(j.date)}${mention}`, j.horaires ?? "aucune assistance");
   }
   if (v.plage) ligne("Créneau qui couvre votre présence","de ", heure(v.jour, v.plage[0]), " à ", heure(v.jour, v.plage[1]));
   ligne("Verdict", v.ok ? "dans la plage d'assistance" : "hors plage d'assistance");
@@ -161,6 +195,7 @@ function sectionEtape(titre, v, alertes) {
   return section;
 }
 
+// Section du verdict global, placée en tête du résultat.
 function sectionGlobale(rejets, alertes) {
   const verdict = rejets.length ? "rejet" : alertes.length ? "attention" : "ok";
   const libelles = {
@@ -185,6 +220,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const resultat = document.getElementById("resultat");
   const boutonAjout = document.getElementById("ajouter-correspondance");
 
+  // Numérote les correspondances pour que les libellés restent distincts.
   const numeroter = () => {
     document.querySelectorAll(".correspondance").forEach((fieldset, i) => {
       fieldset.querySelector("legend").textContent = `Correspondance ${i + 1}`;
@@ -192,6 +228,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
+  // Chaque correspondance est insérée juste avant l'arrivée.
   boutonAjout.addEventListener("click", () => {
     const fragment = document.getElementById("correspondance").content.cloneNode(true);
     const fieldset = fragment.querySelector("fieldset");
@@ -218,6 +255,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     const marge = Number(f.get("marge"));
     const correspMini = Number(f.get("corresp_mini"));
 
+    // Place les horaires sur une frise en minutes depuis le début de `jour` :
+    // un horaire antérieur au précédent veut dire qu'on est passé au lendemain.
     let precedent = 0;
     const surFrise = (horaire) => {
       let t = minutes(horaire) + Math.floor(precedent / MIN_JOUR) * MIN_JOUR;
@@ -225,6 +264,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       return (precedent = t);
     };
 
+    // Étapes dans l'ordre chronologique
     const depart = surFrise(f.get("horaire_depart"));
     const etapes = [{ libelle: "Départ", nom: f.get("gare_depart"), debut: depart - marge, fin: depart }];
     const departsCorresp = f.getAll("depart_corresp");
@@ -238,6 +278,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     const rejets = [];
     const alertes = [];
+    // Heure locale du visiteur, supposée être celle de la France.
     const departLe = new Date(`${jour}T${f.get("horaire_depart")}`);
     if (departLe - Date.now() < 24 * 60 * 60 * 1000) {
       alertes.push("départ dans moins de 24 h : la réservation Assist'enGare n'est peut-être plus possible, appelez le 32 12");
@@ -248,6 +289,11 @@ window.addEventListener("DOMContentLoaded", async () => {
       const alertesEtape = [];
       if (!v.ok) rejets.push(`${libelle} à ${nom} : ${v.motif}`);
       if (v.gare?.typepriseencharge === "RESERVE") alertesEtape.push(`${nom} : assistance uniquement sur réservation`);
+      for (const j of v.jours ?? []) {
+        if (j.ferieNonPrecise) {
+          alertesEtape.push(`${nom} : le ${dateLisible(j.date)} est un jour férié et la gare ne précise pas ses horaires ce jour-là, vérifiez au 32 12`);
+        }
+      }
       if (corresp && fin - debut < correspMini) {
         alertesEtape.push(`correspondance de ${fin - debut} min à ${nom}, inférieure au minimum de ${correspMini} min`);
       }
@@ -266,9 +312,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   try {
     const charge = await loadData();
     data = charge.data;
+    FERIES_CONNUS = joursFeriesConnus(data);
     statut.textContent = "";
     document.getElementById("date-donnees").textContent =
       `Données téléchargées le ${new Date(charge.fetchedAt).toLocaleString("fr-FR")}.`;
+    // Certaines gares apparaissent deux fois avec le même nom : une seule suggestion.
     const datalist = document.getElementById("gares");
     for (const nom of new Set(data.map((g) => g.nom).filter(Boolean))) {
       datalist.append(el("option", { value: nom }));
