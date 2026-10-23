@@ -139,7 +139,7 @@ function plagesAutourDe(gare, jour) {
 // debut et fin sont en minutes depuis le début de `jour` (peuvent déborder sur les jours suivants).
 // Renvoie { ok, motif, gare, jour, debut, fin, jours, plage } (motif : raison du refus).
 function verifier(data, jour, nom, debut, fin) {
-  const gare = data.find((g) => g.nom === nom);
+  const gare = data.find((g) => g.nom && normaliser(g.nom) === normaliser(nom));
   if (!gare) return { ok: false, motif: "gare inconnue", gare: null };
 
   // On se ramène au jour où commence l'intervalle.
@@ -214,11 +214,101 @@ function sectionGlobale(rejets, alertes) {
   return section;
 }
 
+// "Saint-Étienne Châteaucreux" -> "saint etienne chateaucreux" ; "St" et "Ste" sont développés.
+function normaliser(texte) {
+  return texte.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ").replace(/\bste\b/g, "sainte").replace(/\bst\b/g, "saint").trim();
+}
+
+// Noms de gares pour l'autocomplétion : [{ nom, cle }], cle = nom normalisé.
+let GARES = [];
+
+// Gares dont le nom contient tous les mots saisis ; celles qui commencent par la saisie d'abord.
+function suggestions(saisie, max = 8) {
+  const debut = normaliser(saisie);
+  const mots = debut.split(" ").filter(Boolean);
+  if (!mots.length) return [];
+  return GARES
+    .filter((g) => mots.every((m) => g.cle.includes(m)))
+    .sort((a, b) => b.cle.startsWith(debut) - a.cle.startsWith(debut) || a.nom.localeCompare(b.nom, "fr"))
+    .slice(0, max);
+}
+
+// Autocomplétion accessible (motif "combobox" ARIA), car <datalist> n'est pas géré
+// partout (Firefox Android notamment). L'input doit être dans un élément .combobox.
+let nbCombobox = 0;
+function brancherCombobox(input) {
+  const id = `suggestions-${++nbCombobox}`;
+  const liste = el("ul", { role: "listbox", id, class: "suggestions", "aria-label": "Gares suggérées" });
+  liste.hidden = true;
+  input.closest(".combobox").append(liste);
+  for (const [nom, valeur] of Object.entries({
+    role: "combobox", "aria-autocomplete": "list", "aria-expanded": "false", "aria-controls": id, autocomplete: "off",
+  })) input.setAttribute(nom, valeur);
+
+  let options = [];
+  let actif = -1;
+  const activer = (i) => {
+    actif = i;
+    options.forEach((o, j) => o.setAttribute("aria-selected", String(j === i)));
+    if (i >= 0) {
+      input.setAttribute("aria-activedescendant", options[i].id);
+      options[i].scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  };
+  const fermer = () => {
+    liste.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    activer(-1);
+  };
+  const choisir = (nom) => {
+    input.value = nom;
+    fermer();
+  };
+  const ouvrir = () => {
+    options = suggestions(input.value).map((g, i) => {
+      const option = el("li", { role: "option", id: `${id}-${i}`, "aria-selected": "false" }, g.nom);
+      // mousedown plutôt que click : sinon l'input perd le focus et la liste se ferme avant le clic.
+      option.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        choisir(g.nom);
+      });
+      return option;
+    });
+    liste.replaceChildren(...options);
+    actif = -1;
+    if (!options.length) return fermer();
+    liste.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+  };
+
+  input.addEventListener("input", ouvrir);
+  input.addEventListener("blur", fermer);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (liste.hidden) ouvrir();
+      if (!options.length) return;
+      const pas = e.key === "ArrowDown" ? 1 : -1;
+      activer((actif + pas + options.length) % options.length);
+    } else if (e.key === "Enter" && !liste.hidden && actif >= 0) {
+      e.preventDefault();
+      choisir(options[actif].textContent);
+    } else if (e.key === "Escape" && !liste.hidden) {
+      e.preventDefault();
+      fermer();
+    }
+  });
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   const form = document.querySelector("form");
   const statut = document.getElementById("statut");
   const resultat = document.getElementById("resultat");
   const boutonAjout = document.getElementById("ajouter-correspondance");
+  form.querySelectorAll(".combobox input").forEach(brancherCombobox);
 
   // Numérote les correspondances pour que les libellés restent distincts.
   const numeroter = () => {
@@ -238,6 +328,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       boutonAjout.focus();
     });
     document.getElementById("arrivee").before(fragment);
+    brancherCombobox(fieldset.querySelector(".combobox input"));
     numeroter();
     fieldset.querySelector("input").focus();
   });
@@ -286,6 +377,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     const sections = etapes.map(({ libelle, nom, debut, fin, corresp }) => {
       const v = verifier(data, jour, nom, debut, fin);
+      nom = v.gare?.nom ?? nom; // nom officiel, si la saisie différait (accents, majuscules…)
       const alertesEtape = [];
       if (!v.ok) rejets.push(`${libelle} à ${nom} : ${v.motif}`);
       if (v.gare?.typepriseencharge === "RESERVE") alertesEtape.push(`${nom} : assistance uniquement sur réservation`);
@@ -317,10 +409,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("date-donnees").textContent =
       `Données téléchargées le ${new Date(charge.fetchedAt).toLocaleString("fr-FR")}.`;
     // Certaines gares apparaissent deux fois avec le même nom : une seule suggestion.
-    const datalist = document.getElementById("gares");
-    for (const nom of new Set(data.map((g) => g.nom).filter(Boolean))) {
-      datalist.append(el("option", { value: nom }));
-    }
+    GARES = [...new Set(data.map((g) => g.nom).filter(Boolean))].map((nom) => ({ nom, cle: normaliser(nom) }));
   } catch (err) {
     console.error("Échec du chargement des données :", err);
     statut.textContent = "Impossible de charger les données. Réessayez plus tard ou appelez le 32 12.";

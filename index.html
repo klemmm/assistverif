@@ -10,7 +10,7 @@
 </head>
 <body>
 <header class="container">
-  <h1>Vérificateur d'éligibilité d'assistance en gare</h1>
+<h1>Vérificateur d'éligibilité d'assistance en gare</h1>
   <p>Vérifie si Assist'enGare est compatible avec les gares et horaires de votre trajet.</p>
   <p>Cet outil compare seulement vos horaires avec les horaires du service d'assistance en gare. Il ne vérifie pas que le trajet spécifié existe réellement, et il ne fait aucune réservation.</p>
 </header>
@@ -23,7 +23,7 @@
     <fieldset>
       <legend>Départ</legend>
       <div class="grid">
-        <label>Gare <input type="text" name="gare_depart" list="gares" required></label>
+        <div class="combobox"><label>Gare <input type="text" name="gare_depart" required></label></div>
         <label>Horaire de départ <input type="time" name="horaire_depart" required></label>
       </div>
     </fieldset>
@@ -31,7 +31,7 @@
     <fieldset id="arrivee">
       <legend>Arrivée</legend>
       <div class="grid">
-        <label>Gare <input type="text" name="gare_arrivee" list="gares" required></label>
+        <div class="combobox"><label>Gare <input type="text" name="gare_arrivee" required></label></div>
         <label>Horaire d'arrivée <input type="time" name="horaire_arrivee" required></label>
       </div>
     </fieldset>
@@ -44,7 +44,6 @@
       </div>
     </details>
 
-    <datalist id="gares"></datalist>
     <div class="grid">
       <button type="button" id="ajouter-correspondance" class="secondary">Ajouter une correspondance</button>
       <button type="submit">Vérifier</button>
@@ -55,7 +54,7 @@
     <fieldset class="correspondance">
       <legend>Correspondance</legend>
       <div class="grid">
-        <label>Gare <input type="text" name="gare_corresp" list="gares" required></label>
+        <div class="combobox"><label>Gare <input type="text" name="gare_corresp" required></label></div>
         <label>Horaire d'arrivée <input type="time" name="arrivee_corresp" required></label>
         <label>Horaire de départ <input type="time" name="depart_corresp" required></label>
       </div>
@@ -72,14 +71,11 @@
 </main>
 
 <footer class="container">
-<p><a href="https://github.com/klemmm/verifassist/issues">Signaler un problème</a></p>
-  
   <p>Site sous licence <a href="http://www.wtfpl.net/">WTFPL</a>.</p>
   <p>Source des données : « <a href="https://ressources.data.sncf.com/explore/dataset/assistance-psh-pmr/">Assistance PSH/PMR</a> », Gares &amp; Connexions (SNCF), sous licence <a href="https://opendatacommons.org/licenses/odbl/">ODbL</a>.</p>
   <p id="date-donnees"></p>
   <p>Les données sont chargées depuis data.sncf.com, une fois par jour au plus, et stockées dans votre navigateur. Les informations saisies dans le formulaire ne quittent pas votre navigateur. Aucune pub ni cookies ni pistage ici.</p>
   <p>Aucune garantie : ces informations peuvent être inexactes ou périmées. Confirmez-les en appelant le <a href="tel:3212">32 12</a>.</p>
-  <p>Outil indépendant, non affilié à la SNCF ni à Gares & Connexions, il utilise simplement leurs données ouvertes.</p>
 </footer>
 </body>
 </html>
