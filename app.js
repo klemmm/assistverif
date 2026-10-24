@@ -7,8 +7,12 @@ const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 // via l'API Cache (dispo en contexte sécurisé : https ou localhost).
 // Renvoie { data, fetchedAt } (fetchedAt : date du téléchargement, en ms).
 async function loadData() {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(DATA_URL);
+  // L'API Cache peut être indisponible (navigation privée, stockage bloqué) : on fait sans.
+  let cache = null, cached = null;
+  try {
+    cache = await caches.open(CACHE_NAME);
+    cached = await cache.match(DATA_URL);
+  } catch {}
 
   const cachedAt = cached && Number(cached.headers.get("x-fetched-at"));
   if (cached && Date.now() - cachedAt < MAX_AGE_MS) {
@@ -19,8 +23,11 @@ async function loadData() {
     const res = await fetch(DATA_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = await res.text();
+    const data = JSON.parse(body);
+    // Ne pas écraser la bonne copie en cache avec une réponse cassée.
+    if (!Array.isArray(data) || !data.length) throw new Error("Données inattendues");
     const fetchedAt = Date.now();
-    await cache.put(
+    await cache?.put(
       DATA_URL,
       new Response(body, {
         headers: {
@@ -28,8 +35,8 @@ async function loadData() {
           "x-fetched-at": String(fetchedAt),
         },
       })
-    );
-    return { data: JSON.parse(body), fetchedAt };
+    ).catch(() => {});
+    return { data, fetchedAt };
   } catch (err) {
     // Réseau indisponible : on se rabat sur la version en cache, même périmée.
     if (cached) return { data: await cached.json(), fetchedAt: cachedAt };

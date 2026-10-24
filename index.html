@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://ressources.data.sncf.com; img-src 'self' data:">
 <title>Assistance PMR en gare</title>
 <link rel="stylesheet" href="css/pico.min.css">
 <link rel="stylesheet" href="css/style.css">
@@ -17,6 +18,7 @@
 
 <main class="container">
   <h2>Votre trajet</h2>
+  <noscript><p>Cet outil nécessite JavaScript.</p></noscript>
   <form>
     <p><label>Date du départ <input type="date" name="jour" required></label></p>
 
@@ -76,7 +78,7 @@
   <p id="date-donnees"></p>
   <p>Les données sont chargées depuis data.sncf.com, une fois par jour au plus, et stockées dans votre navigateur. Les informations saisies dans le formulaire ne quittent pas votre navigateur. Aucune pub ni cookies ni pistage ici.</p>
   <p>Aucune garantie : ces informations peuvent être inexactes ou périmées. Confirmez-les en appelant le <a href="tel:3212">32 12</a>.</p>
-  <p>Site personnel et non commercial, non affilié à la SNCF (il utlise simplement leurs données ouvertes). Hébergé par GitHub, Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, États-Unis.</p>
+  <p>Site personnel et non commercial, non affilié à la SNCF (il utilise simplement leurs données ouvertes). Hébergé par GitHub, Inc., 88 Colin P Kelly Jr Street, San Francisco, CA 94107, États-Unis.</p>
 </footer>
 </body>
 </html>
