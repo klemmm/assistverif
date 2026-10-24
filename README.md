@@ -22,18 +22,9 @@ J'ai voulu vérifier sur le site de Gares & Connexions, et j'ai vu que pour cert
 
 ![Page « Dépose handicapés » de Muret](img/muret2.png)
 
-Aussi, pour certaines gares, le site et les données ouvertes ne donnent pas les mêmes horaires. À Dax, en octobre 2026 :
+Aussi, pour certaines gares, le site et les données ouvertes ne donnent pas les mêmes horaires. Par exemple, à Tarbes, en octobre 2026, les horaires du dimanche sur Gares & Connexions indiquent un début à 7h alors que les données ouvertes indiquent un début à 5h45, et lors de mon appel au 32 12 on m'a confirmé que l'horaire exact était bien 5h45.
 
-| | Site Gares & Connexions | Données ouvertes |
-|---|---|---|
-| Samedi | 06:20 – 21:45 | 06:30 – 23:15 |
-| Dimanche | 06:20 – 22:15 | 06:30 – 22:25 |
-| Lundi à jeudi | 05:20 – 22:15 | 05:20 – 22:25 |
-
-![Page accessibilité de Dax](img/paspratique.png)
-
-
-Pour Tarbes, également une divergence, avec la base de données ouverte qui indique un début à 5h45 le Dimanche, alors que le site Gares & Connexions indique un début à 7h00.
+![Page accessibilité de Dax](img/tarbes.png)
 
 Je n'ai pas de preuve de quel jeu de données "fait foi", mais, il y a plusieurs élements qui tendent à confirmer l'hypothèse que c'est la base de données ouverte qui est exacte :
 
