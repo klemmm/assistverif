@@ -48,7 +48,7 @@ Il ne vérifie pas que les trains existent, ni que la gare est physiquement acce
 
 ## Technique
 
-Une page HTML, un fichier JS, pas de serveur. Le navigateur télécharge les données sur data.sncf.com au plus une fois par jour et les garde en cache. Rien de ce qui est saisi ne sort du navigateur, et il n'y a ni pub ni cookies ni pistage.
+Site statique (HTML, JS, et CSS), pas de backend dynamique, et la seule base de données est celle de la SNCF. Le navigateur télécharge les données sur data.sncf.com au plus une fois par jour et les garde en cache. Rien de ce qui est saisi ne sort du navigateur, et il n'y a ni pub ni cookies ni pistage.
 
 Le code est sous [WTFPL](LICENSE). [Pico CSS](https://picocss.com) est sous licence MIT. Les données « [Assistance PSH/PMR](https://ressources.data.sncf.com/explore/dataset/assistance-psh-pmr/) » de Gares & Connexions sont sous licence [ODbL](https://opendatacommons.org/licenses/odbl/).
 
