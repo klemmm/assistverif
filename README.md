@@ -41,7 +41,7 @@ Les données sont publiques, donc j'ai fait l'outil. Sur le même trajet, il voi
 
 On entre la date, les gares et les horaires (départ, correspondances, arrivée). Pour chaque gare, l'outil vérifie que l'assistance est ouverte pendant tout le temps où on y est : à partir de 30 minutes avant le départ (réglable), pendant toute la correspondance, et à l'arrivée. Il gère les jours fériés que la gare renseigne et les trajets qui passent minuit. Il prévient aussi quand une correspondance est courte, quand une gare ne prend que sur réservation, ou quand un jour férié n'a pas d'horaires précisés.
 
-Il ne vérifie pas que les trains existent, ni que la gare est physiquement accessible, et il ne réserve rien. Les horaires sont ceux des données ouvertes, qui peuvent être différents de la réalité (voir Dax plus haut). Dans tous les cas, il faut appeler le 32 12 pour confirmer et réserver.
+Il ne vérifie pas que les trains existent, ni que la gare est physiquement accessible, et il ne réserve rien. Les horaires sont ceux des données ouvertes, qui peuvent être différents de la réalité (voir Tarbes plus haut). Dans tous les cas, il faut appeler le 32 12 pour confirmer et réserver.
 
 ## Technique
 
