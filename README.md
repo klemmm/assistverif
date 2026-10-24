@@ -30,6 +30,8 @@ Aussi, pour certaines gares, le site et les données ouvertes ne donnent pas les
 | Dimanche | 06:20 – 22:15 | 06:30 – 22:25 |
 | Lundi à jeudi | 05:20 – 22:15 | 05:20 – 22:25 |
 
+![Page accessibilité de Dax](img/paspratique.png)
+
 
 Pour Tarbes, également une divergence, avec la base de données ouverte qui indique un début à 5h45 le Dimanche, alors que le site Gares & Connexions indique un début à 7h00.
 
