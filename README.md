@@ -34,7 +34,15 @@ Aussi, pour certaines gares, le site et les données ouvertes ne donnent pas les
 | Dimanche | 06:20 – 22:15 | 06:30 – 22:25 |
 | Lundi à jeudi | 05:20 – 22:15 | 05:20 – 22:25 |
 
-Je ne sais pas laquelle des deux sources est la bonne. Pour Muret, c'étaient les données ouvertes. Et les lieux de rendez-vous indiqués dans la confirmation de réservation Assist'enGare sont exactement ceux des données ouvertes, fautes de frappe comprises. Je pense donc qu'elles viennent du même système que les réservations, mais je n'en ai pas la preuve.
+
+Pour Tarbes, également une divergence, avec la base de données ouverte qui indique un début à 5h45 le Dimanche, alors que le site Gares & Connexions indique un début à 7h00.
+
+Je n'ai pas de preuve de quel jeu de données "fait foi", mais, il y a plusieurs élements qui tendent à confirmer l'hypothèse que c'est la base de données ouverte qui est exacte :
+
+ * L'appel au 32 12 lors de la réservation pour ma mère m'a confirmé l'exactitude des infos de la base de données ouverte pour Muret et Tarbes (alors que les informations sur Gares & Connexions étaient absentes pour Muret, et inexactes pour Tarbes)
+ * Les lieux de rendez-vous indiqués dans la confirmation de réservation Assist'enGare de ma mère sont exactement ceux des données ouvertes, fautes de frappe comprises. 
+
+Je ne vais pas rappeler le 32 12 étant donné que leur fonction principale est d'aider les usagers handicapés et pas de servir d'oracle pour le diagnostic de données, mais je pense qu'il y a un faisceau d'indices suffisant pour penser que les données utilisées par le 32 12 pour répondre aux usagers sont les mêmes que celles de la base de données ouverte (bien que je n'en ai pas de preuve absolue).
 
 Les données sont publiques, donc j'ai fait l'outil. Sur le même trajet, il voit le problème tout de suite :
 
