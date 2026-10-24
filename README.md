@@ -54,4 +54,4 @@ Le code est sous [WTFPL](LICENSE). [Pico CSS](https://picocss.com) est sous lice
 
 Ce projet n'a aucun lien avec la SNCF ni avec Gares & Connexions.
 
-Un bug, une gare qui ne colle pas : [ouvrez une issue](https://github.com/klemmm/assistverif/issues/new).
+En cas de problème : [signalez ici](https://github.com/klemmm/assistverif/issues/new).
