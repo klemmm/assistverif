@@ -196,6 +196,8 @@ function sectionEtape(titre, v, alertes) {
   }
   if (v.plage) ligne("Créneau qui couvre votre présence","de ", heure(v.jour, v.plage[0]), " à ", heure(v.jour, v.plage[1]));
   ligne("Verdict", v.ok ? "dans la plage d'assistance" : "hors plage d'assistance");
+  const maj = v.gare.datestatut?.slice(0, 10);
+  if (maj) ligne("Fiche de la gare mise à jour le", el("time", { datetime: maj }, dateLisible(maj)));
   section.append(dl);
 
   if (alertes.length) section.append(el("ul", {}, ...alertes.map((a) => el("li", {}, `Attention : ${a}`))));
