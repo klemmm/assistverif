@@ -22,10 +22,6 @@ J'ai voulu vérifier sur le site de Gares & Connexions, et j'ai vu que pour cert
 
 ![Page « Dépose handicapés » de Muret](img/muret2.png)
 
-Pour les gares où les horaires sont affichés, on ne voit que les 7 prochains jours, et comme l'horaire varie pour les jours feriés, dans le cas d'un trajet réservé plus d'une semaine a l'avance et tombant sur un jour ferié, le site ne permet donc pas d'avoir l'information.
-
-![Page assistance de Dax, horaires sur 7 jours](img/paspratique.png)
-
 Aussi, pour certaines gares, le site et les données ouvertes ne donnent pas les mêmes horaires. À Dax, en octobre 2026 :
 
 | | Site Gares & Connexions | Données ouvertes |
