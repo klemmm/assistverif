@@ -24,7 +24,7 @@ J'ai voulu vérifier sur le site de Gares & Connexions, et j'ai vu que pour cert
 
 Aussi, pour certaines gares, le site et les données ouvertes ne donnent pas les mêmes horaires. Par exemple, à Tarbes, en octobre 2026, les horaires du dimanche sur Gares & Connexions indiquent un début à 7h alors que les données ouvertes indiquent un début à 5h45, et lors de mon appel au 32 12 on m'a confirmé que l'horaire exact était bien 5h45.
 
-![Page accessibilité de Dax](img/tarbes.png)
+![Page accessibilité de Tarbes](img/tarbes.png)
 
 Je n'ai pas de preuve de quel jeu de données "fait foi", mais, il y a plusieurs élements qui tendent à confirmer l'hypothèse que c'est la base de données ouverte qui est exacte :
 
